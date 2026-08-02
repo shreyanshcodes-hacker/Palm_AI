@@ -1,0 +1,10 @@
+{
+  "name": "PalmAI",
+  "description": "Luxury AI-powered palm reading web application with instant Gemini vision analysis and downloadable reports in English & Hindi.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
