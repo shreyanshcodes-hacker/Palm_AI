@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { UserInfo, PalmReadingReport, Language } from './types';
 import { getFallbackReading } from './utils/fallbackReading';
 import { AnnouncementBar } from './components/AnnouncementBar';
@@ -104,48 +105,90 @@ export default function App() {
         />
 
         {/* Main Content Area */}
-        <main className="pb-16">
-          {step === 'landing' && (
-            <LandingHero
-              language={userInfo.language}
-              onStart={() => setStep('form')}
-            />
-          )}
+        <main className="pb-16 overflow-hidden">
+          <AnimatePresence mode="wait">
+            {step === 'landing' && (
+              <motion.div
+                key="landing"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.35, ease: 'easeInOut' }}
+              >
+                <LandingHero
+                  language={userInfo.language}
+                  onStart={() => setStep('form')}
+                />
+              </motion.div>
+            )}
 
-          {step === 'form' && (
-            <InputForm
-              userInfo={userInfo}
-              onChange={setUserInfo}
-              onNext={() => setStep('upload')}
-              language={userInfo.language}
-            />
-          )}
+            {step === 'form' && (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.35, ease: 'easeInOut' }}
+              >
+                <InputForm
+                  userInfo={userInfo}
+                  onChange={setUserInfo}
+                  onNext={() => setStep('upload')}
+                  language={userInfo.language}
+                />
+              </motion.div>
+            )}
 
-          {step === 'upload' && (
-            <UploadSection
-              imagePreview={imagePreview}
-              onImageSelected={setImagePreview}
-              onAnalyze={handleStartAnalysis}
-              onBack={() => setStep('form')}
-              language={userInfo.language}
-            />
-          )}
+            {step === 'upload' && (
+              <motion.div
+                key="upload"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.35, ease: 'easeInOut' }}
+              >
+                <UploadSection
+                  imagePreview={imagePreview}
+                  onImageSelected={setImagePreview}
+                  onAnalyze={handleStartAnalysis}
+                  onBack={() => setStep('form')}
+                  language={userInfo.language}
+                />
+              </motion.div>
+            )}
 
-          {step === 'loading' && (
-            <LoadingAnimation
-              imagePreview={imagePreview}
-              language={userInfo.language}
-            />
-          )}
+            {step === 'loading' && (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.35, ease: 'easeInOut' }}
+              >
+                <LoadingAnimation
+                  imagePreview={imagePreview}
+                  language={userInfo.language}
+                />
+              </motion.div>
+            )}
 
-          {step === 'report' && report && (
-            <ReportView
-              report={report}
-              imagePreview={imagePreview}
-              language={userInfo.language}
-              onReset={handleReset}
-            />
-          )}
+            {step === 'report' && report && (
+              <motion.div
+                key="report"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.35, ease: 'easeInOut' }}
+              >
+                <ReportView
+                  report={report}
+                  imagePreview={imagePreview}
+                  language={userInfo.language}
+                  onReset={handleReset}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </main>
       </div>
 

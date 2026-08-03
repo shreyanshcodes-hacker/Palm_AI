@@ -93,6 +93,14 @@ export const UI_TRANSLATIONS: Record<Language, Record<string, string>> = {
     shareFacebook: "Share on Facebook",
     shareTelegram: "Share on Telegram",
 
+    // AI Palm Guide Chat
+    chatTitle: "💬 Ask PalmAI",
+    chatSubtitle: "Ask anything about your palm reading report.",
+    chatPlaceholder: "Ask about your career, relationships, personality, strengths, future guidance...",
+    emptyChatState: "Generate your palm reading first to unlock AI Palm Guide.",
+    chatErrorMsg: "Sorry, I couldn't answer that. Please try again.",
+    retryBtnText: "Retry",
+
     // Legal
     disclaimerTitle: "Disclaimer",
     disclaimerText: "This AI-generated palm reading is intended for entertainment and self-reflection only. Palmistry is not scientifically validated and should not be considered a factual prediction of personality, health, relationships, or future events."
@@ -188,6 +196,14 @@ export const UI_TRANSLATIONS: Record<Language, Record<string, string>> = {
     shareX: "X (ट्विटर) पर शेयर करें",
     shareFacebook: "फेसबुक पर शेयर करें",
     shareTelegram: "टेलीग्राम पर शेयर करें",
+
+    // AI Palm Guide Chat
+    chatTitle: "💬 पाम-एआई से पूछें",
+    chatSubtitle: "अपनी हस्तरेखा रिपोर्ट के बारे में कोई भी सवाल पूछें।",
+    chatPlaceholder: "करियर, रिश्तों, व्यक्तित्व, शक्तियों, या मार्गदर्शन के बारे में पूछें...",
+    emptyChatState: "एआई पाम गाइड का उपयोग करने के लिए पहले हस्तरेखा रिपोर्ट बनाएं।",
+    chatErrorMsg: "क्षमा करें, उत्तर प्राप्त नहीं हो सका। कृपया पुनः प्रयास करें।",
+    retryBtnText: "पुनः प्रयास करें",
 
     // Legal
     disclaimerTitle: "अस्वीकरण (Disclaimer)",

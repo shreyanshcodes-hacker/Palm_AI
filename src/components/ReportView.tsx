@@ -24,6 +24,7 @@ import { UI_TRANSLATIONS } from '../constants/languages';
 import { PalmVectorDiagram } from './PalmVectorDiagram';
 import { ReportCard } from './ReportCard';
 import { ShareModal } from './ShareModal';
+import { AIPalmGuideChat } from './AIPalmGuideChat';
 import { downloadElementAsPng, downloadElementAsPdf } from '../utils/exportUtils';
 
 interface ReportViewProps {
@@ -432,6 +433,9 @@ export const ReportView: React.FC<ReportViewProps> = ({
           </p>
         </div>
       </div>
+
+      {/* AI Palm Guide Follow-up Chat */}
+      <AIPalmGuideChat report={report} language={language} />
 
       {/* Share Modal Dialog */}
       <ShareModal
