@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UserInfo, PalmReadingReport, Language } from './types';
 import { getFallbackReading } from './utils/fallbackReading';
@@ -9,10 +9,19 @@ import { InputForm } from './components/InputForm';
 import { UploadSection } from './components/UploadSection';
 import { LoadingAnimation } from './components/LoadingAnimation';
 import { ReportView } from './components/ReportView';
+import { AboutDeveloper } from './components/AboutDeveloper';
 
 type AppStep = 'landing' | 'form' | 'upload' | 'loading' | 'report';
+type ViewPage = 'app' | 'about';
 
 export default function App() {
+  const [currentView, setCurrentView] = useState<ViewPage>(() => {
+    if (typeof window !== 'undefined' && window.location.pathname === '/about') {
+      return 'about';
+    }
+    return 'app';
+  });
+
   const [step, setStep] = useState<AppStep>('landing');
 
   const [userInfo, setUserInfo] = useState<UserInfo>({
@@ -24,6 +33,31 @@ export default function App() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [report, setReport] = useState<PalmReadingReport | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Sync browser URL with routing
+  useEffect(() => {
+    const handlePopState = () => {
+      if (window.location.pathname === '/about') {
+        setCurrentView('about');
+      } else {
+        setCurrentView('app');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleNavigate = (view: ViewPage) => {
+    setCurrentView(view);
+    if (view === 'about') {
+      window.history.pushState(null, '', '/about');
+    } else {
+      window.history.pushState(null, '', '/');
+      document.title = 'PalmAI — Luxury AI Palmistry Engine';
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleLanguageChange = (lang: Language) => {
     setUserInfo((prev) => ({ ...prev, language: lang }));
@@ -37,6 +71,9 @@ export default function App() {
   };
 
   const handleReset = () => {
+    setCurrentView('app');
+    window.history.pushState(null, '', '/');
+    document.title = 'PalmAI — Luxury AI Palmistry Engine';
     setStep('landing');
     setUserInfo({ name: '', age: '', language: userInfo.language });
     setImagePreview(null);
@@ -102,91 +139,110 @@ export default function App() {
           onLanguageChange={handleLanguageChange}
           onReset={handleReset}
           hasReport={!!report && step === 'report'}
+          currentView={currentView}
+          onNavigate={handleNavigate}
         />
 
         {/* Main Content Area */}
         <main className="pb-16 overflow-hidden">
           <AnimatePresence mode="wait">
-            {step === 'landing' && (
+            {currentView === 'about' ? (
               <motion.div
-                key="landing"
+                key="about-page"
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.35, ease: 'easeInOut' }}
               >
-                <LandingHero
+                <AboutDeveloper
                   language={userInfo.language}
-                  onStart={() => setStep('form')}
+                  onNavigateHome={() => handleNavigate('app')}
                 />
               </motion.div>
-            )}
+            ) : (
+              <React.Fragment key="app-flow">
+                {step === 'landing' && (
+                  <motion.div
+                    key="landing"
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.35, ease: 'easeInOut' }}
+                  >
+                    <LandingHero
+                      language={userInfo.language}
+                      onStart={() => setStep('form')}
+                    />
+                  </motion.div>
+                )}
 
-            {step === 'form' && (
-              <motion.div
-                key="form"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.35, ease: 'easeInOut' }}
-              >
-                <InputForm
-                  userInfo={userInfo}
-                  onChange={setUserInfo}
-                  onNext={() => setStep('upload')}
-                  language={userInfo.language}
-                />
-              </motion.div>
-            )}
+                {step === 'form' && (
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.35, ease: 'easeInOut' }}
+                  >
+                    <InputForm
+                      userInfo={userInfo}
+                      onChange={setUserInfo}
+                      onNext={() => setStep('upload')}
+                      language={userInfo.language}
+                    />
+                  </motion.div>
+                )}
 
-            {step === 'upload' && (
-              <motion.div
-                key="upload"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.35, ease: 'easeInOut' }}
-              >
-                <UploadSection
-                  imagePreview={imagePreview}
-                  onImageSelected={setImagePreview}
-                  onAnalyze={handleStartAnalysis}
-                  onBack={() => setStep('form')}
-                  language={userInfo.language}
-                />
-              </motion.div>
-            )}
+                {step === 'upload' && (
+                  <motion.div
+                    key="upload"
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.35, ease: 'easeInOut' }}
+                  >
+                    <UploadSection
+                      imagePreview={imagePreview}
+                      onImageSelected={setImagePreview}
+                      onAnalyze={handleStartAnalysis}
+                      onBack={() => setStep('form')}
+                      language={userInfo.language}
+                    />
+                  </motion.div>
+                )}
 
-            {step === 'loading' && (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.35, ease: 'easeInOut' }}
-              >
-                <LoadingAnimation
-                  imagePreview={imagePreview}
-                  language={userInfo.language}
-                />
-              </motion.div>
-            )}
+                {step === 'loading' && (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.35, ease: 'easeInOut' }}
+                  >
+                    <LoadingAnimation
+                      imagePreview={imagePreview}
+                      language={userInfo.language}
+                    />
+                  </motion.div>
+                )}
 
-            {step === 'report' && report && (
-              <motion.div
-                key="report"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.35, ease: 'easeInOut' }}
-              >
-                <ReportView
-                  report={report}
-                  imagePreview={imagePreview}
-                  language={userInfo.language}
-                  onReset={handleReset}
-                />
-              </motion.div>
+                {step === 'report' && report && (
+                  <motion.div
+                    key="report"
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.35, ease: 'easeInOut' }}
+                  >
+                    <ReportView
+                      report={report}
+                      imagePreview={imagePreview}
+                      language={userInfo.language}
+                      onReset={handleReset}
+                    />
+                  </motion.div>
+                )}
+              </React.Fragment>
             )}
           </AnimatePresence>
         </main>
@@ -198,9 +254,17 @@ export default function App() {
           <p className="font-serif font-semibold text-stone-800">
             Palm<span className="text-amber-700">AI</span> — Luxury AI Palmistry Engine
           </p>
-          <p className="text-[#6B7280] font-medium">
-            100% Free • Powered by ShreyanshCodes
-          </p>
+          <div className="flex items-center gap-4 text-[#6B7280] font-medium">
+            <button
+              type="button"
+              onClick={() => handleNavigate('about')}
+              className="hover:text-stone-900 transition-colors cursor-pointer"
+            >
+              About Developer
+            </button>
+            <span>•</span>
+            <p>Built with ❤️ by ShreyanshCodes</p>
+          </div>
         </div>
       </footer>
     </div>
