@@ -52,19 +52,19 @@ Simply upload your palm, choose your preferred language, and receive a luxury in
 
 ### Landing Page
 
-<img src="./images/landing-page.png" width="100%">
+<img src="./public/landing-page.png" width="100%">
 
 ---
 
 ### AI Analysis
 
-<img src="./images/analysis.png" width="100%">
+<img src="./public/analysis.png" width="100%">
 
 ---
 
 ### Generated Report
 
-<img src="./images/report.png" width="100%">
+<img src="./public/report.png" width="100%">
 
 ---
 

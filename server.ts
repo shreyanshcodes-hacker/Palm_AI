@@ -3,6 +3,8 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { handlePalmChatRequest } from "./src/server/xaiChatService";
+import { handlePalmAnalyzeRequest } from "./src/server/palmAnalyzeService";
 
 dotenv.config();
 
@@ -28,130 +30,39 @@ const getGeminiClient = () => {
   });
 };
 
-// API Endpoint for AI Palm Guide Chat
+// Health check endpoint for Chat API
+app.get("/api/chat", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "PalmAI Chat API",
+  });
+});
+
+// Official xAI Grok AI Chat endpoint
+app.post("/api/chat", async (req, res) => {
+  try {
+    const result = await handlePalmChatRequest(req.body);
+    return res.status(result.status).json(result.body);
+  } catch (error: any) {
+    console.error("Server /api/chat error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Unable to generate response right now.",
+    });
+  }
+});
+
+// Backward compatibility alias endpoint
 app.post("/api/chat-palm", async (req, res) => {
   try {
-    const { report, messages = [], userQuestion, language = "English" } = req.body;
-
-    if (!report || !userQuestion) {
-      return res.status(400).json({ error: "Report data and user question are required" });
-    }
-
-    const ai = getGeminiClient();
-
-    const systemInstruction = `
-You are PalmAI Assistant.
-
-You are a helpful AI assistant that explains the user's previously generated palm reading report.
-
-You only have access to the generated palm report.
-
-Never invent palm features.
-Never contradict the report.
-Never generate a new palm reading.
-Never pretend to see details that are not present in the report.
-
-If something cannot be inferred from the report, politely explain that it cannot be determined from the available analysis.
-
-Use the report as your only source of palm information.
-
-The purpose of this conversation is educational, reflective and entertainment only.
-
-Do not guarantee future events.
-Do not make claims of certainty.
-Never give medical diagnosis.
-Never give legal advice.
-Never give financial advice.
-Never encourage risky decisions.
-
-If asked about health:
-Explain that palmistry is not a medical tool and encourage consulting qualified healthcare professionals for health concerns.
-
-If asked about relationships:
-Frame answers as traditional palmistry interpretations.
-
-If asked about career:
-Frame answers as guidance and strengths rather than predictions.
-
-If asked about future:
-Avoid certainty.
-
-Always use encouraging language.
-Be respectful.
-Be warm.
-Be positive.
-
-LANGUAGE DETECTION:
-Automatically detect the user's question language.
-If user asks in English, answer entirely in English.
-If user asks in Hindi (or Devanagari script), answer entirely in Hindi.
-Do not mix languages unless the user does.
-The report may be generated in either language.
-Even if the report is English, if the question is Hindi, translate the relevant report information into Hindi before answering.
-Likewise, if the report is Hindi and the question is English, translate naturally into English.
-The reply language should always follow the user's current question.
-
-ANSWER FORMAT:
-Each response should contain markdown headers:
-
-### Short Answer
-(1-2 clear, direct sentences answering the query)
-
-### Explanation
-(In-depth reference to specific lines, mounts, or traits in the generated palm report)
-
-### Guidance
-(Actionable, practical reflection or strengths to leverage)
-
-### Reminder
-(Encouraging note emphasizing personal choices and that palm reading is for reflection)
-`;
-
-    if (!ai) {
-      console.log("Gemini client not initialized, using smart fallback chat response.");
-      const fallbackReply = generateFallbackChatReply(report, userQuestion, language);
-      return res.status(200).json({ reply: fallbackReply, source: "fallback" });
-    }
-
-    // Build prompt with report JSON and previous chat history
-    const contextPrompt = `
-SYSTEM INSTRUCTION:
-${systemInstruction}
-
-GENERATED PALM REPORT DATA:
-${JSON.stringify(report, null, 2)}
-
-PREVIOUS CONVERSATION HISTORY:
-${messages.map((m: any) => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
-
-LATEST USER QUESTION:
-${userQuestion}
-`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: contextPrompt,
-    });
-
-    const replyText = response.text || "I apologize, I could not process your question at this moment.";
-
-    return res.status(200).json({
-      reply: replyText,
-      source: "gemini",
-    });
+    const result = await handlePalmChatRequest(req.body);
+    return res.status(result.status).json(result.body);
   } catch (error: any) {
-    console.error("AI Palm Guide chat API error:", error);
-    // If error occurs during call, return fallback response gracefully
-    try {
-      const { report, userQuestion, language = "English" } = req.body;
-      const fallbackReply = generateFallbackChatReply(report, userQuestion, language);
-      return res.status(200).json({ reply: fallbackReply, source: "fallback-error" });
-    } catch (fallbackErr) {
-      return res.status(500).json({
-        error: "Failed to process chat response",
-        details: error?.message || "Internal server error",
-      });
-    }
+    console.error("Server /api/chat-palm error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Unable to generate response right now.",
+    });
   }
 });
 
@@ -187,128 +98,12 @@ function generateFallbackChatReply(report: any, question: string, defaultLang: s
 }
 app.post("/api/analyze-palm", async (req, res) => {
   try {
-    const { imageBase64, mimeType = "image/jpeg", name, age, language = "English" } = req.body;
-
-    if (!imageBase64) {
-      return res.status(400).json({ error: "Image data is required" });
-    }
-
-    const ai = getGeminiClient();
-
-    if (!ai) {
-      console.log("Gemini API key not found or placeholder used. Utilizing smart fallback engine.");
-      return res.status(200).json({
-        source: "fallback",
-        message: "Using fallback engine due to unconfigured API key."
-      });
-    }
-
-    const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-    const isHindi = language === "Hindi" || language === "हिन्दी";
-
-    const promptText = `
-You are a world-renowned master palmist and intuitive analyst.
-Analyze the uploaded palm photo for the user:
-- Name: ${name || "User"}
-- Age: ${age || "Unspecified"}
-- Preferred Language: ${language}
-
-CRITICAL RULES:
-1. Examine ONLY features clearly visible in the photograph (main lines, finger shape, palm mounts, thumb structure). NEVER invent invisible details.
-2. If language is "${language}" (especially Hindi/हिन्दी), generate ALL titles, descriptions, points, strengths, challenges, future guidance, summary, and disclaimer strictly in ${isHindi ? "Hindi script (Devanagari)" : "English"}.
-3. Provide rich, insightful, uplifting, and realistic reading points.
-4. Output strictly valid JSON conforming to the requested schema. No markdown backticks, no extra text.
-`;
-
-    const imagePart = {
-      inlineData: {
-        mimeType: mimeType || "image/jpeg",
-        data: cleanBase64,
-      },
-    };
-
-    const sectionSchema = {
-      type: Type.OBJECT,
-      properties: {
-        title: { type: Type.STRING },
-        description: { type: Type.STRING },
-        points: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-        },
-        insight: { type: Type.STRING },
-      },
-      required: ["title", "description", "points"],
-    };
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: {
-        parts: [imagePart, { text: promptText }],
-      },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            age: { type: Type.NUMBER },
-            language: { type: Type.STRING },
-            handType: { type: Type.STRING },
-            handTypeDescription: { type: Type.STRING },
-            lifeLine: sectionSchema,
-            headLine: sectionSchema,
-            heartLine: sectionSchema,
-            fateLine: sectionSchema,
-            sunLine: sectionSchema,
-            mountAnalysis: sectionSchema,
-            career: sectionSchema,
-            relationships: sectionSchema,
-            strengths: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-            },
-            challenges: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-            },
-            futureGuidance: { type: Type.STRING },
-            summary: { type: Type.STRING },
-            disclaimer: { type: Type.STRING },
-          },
-          required: [
-            "name",
-            "age",
-            "language",
-            "handType",
-            "lifeLine",
-            "headLine",
-            "heartLine",
-            "fateLine",
-            "sunLine",
-            "mountAnalysis",
-            "career",
-            "relationships",
-            "strengths",
-            "challenges",
-            "futureGuidance",
-            "summary",
-            "disclaimer",
-          ],
-        },
-      },
-    });
-
-    const jsonText = response.text || "{}";
-    const reportData = JSON.parse(jsonText);
-
-    return res.status(200).json({
-      source: "gemini",
-      data: reportData,
-    });
+    const result = await handlePalmAnalyzeRequest(req.body);
+    return res.status(result.status).json(result.body);
   } catch (error: any) {
     console.error("Palm analysis API error:", error);
     return res.status(500).json({
+      source: "error",
       error: "Palm analysis failed",
       details: error?.message || "Internal server error",
     });

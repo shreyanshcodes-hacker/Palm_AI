@@ -30,9 +30,59 @@ export default function App() {
     language: 'English',
   });
 
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [report, setReport] = useState<PalmReadingReport | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return sessionStorage.getItem('palmai_image_preview');
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [report, setReport] = useState<PalmReadingReport | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = sessionStorage.getItem('palmai_saved_report');
+        return saved ? JSON.parse(saved) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Keep sessionStorage in sync
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        if (report) {
+          sessionStorage.setItem('palmai_saved_report', JSON.stringify(report));
+        } else {
+          sessionStorage.removeItem('palmai_saved_report');
+        }
+      } catch (e) {
+        console.warn('SessionStorage sync notice:', e);
+      }
+    }
+  }, [report]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        if (imagePreview) {
+          sessionStorage.setItem('palmai_image_preview', imagePreview);
+        } else {
+          sessionStorage.removeItem('palmai_image_preview');
+        }
+      } catch (e) {
+        console.warn('SessionStorage sync notice:', e);
+      }
+    }
+  }, [imagePreview]);
 
   // Sync browser URL with routing
   useEffect(() => {
@@ -105,13 +155,21 @@ export default function App() {
         }),
       });
 
-      const result = await res.json();
+      let result: any = null;
+      try {
+        const text = await res.text();
+        if (text && text.trim().startsWith('{')) {
+          result = JSON.parse(text);
+        }
+      } catch (parseErr) {
+        console.warn('Analysis JSON parse warning:', parseErr);
+      }
 
-      if (res.ok && result.data) {
+      if (res.ok && result?.data) {
         setReport(result.data);
       } else {
         // Fallback engine
-        console.log('Using fallback reading engine:', result.message || res.statusText);
+        console.log('Using fallback reading engine:', result?.message || res.statusText);
         const fallback = getFallbackReading(userInfo.name, Number(userInfo.age) || 25, userInfo.language);
         setReport(fallback);
       }

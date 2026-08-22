@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { Sparkles, Send, Bot, User, RotateCcw, AlertCircle, MessageSquare } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { PalmReadingReport, Language } from '../types';
@@ -18,27 +18,25 @@ interface AIPalmGuideChatProps {
 }
 
 const CHIPS_EN = [
-  { label: '💼 Career', question: 'What does my report say about my career, success, and leadership?' },
-  { label: '❤️ Relationships', question: 'What does my report reveal about my relationships, heart line, and emotional harmony?' },
-  { label: '🧠 Personality', question: 'Can you summarize my key personality traits and intelligence based on my Head Line?' },
-  { label: '🌱 Self Growth', question: 'What self-growth advice and challenges are highlighted in my report?' },
-  { label: '💰 Finance', question: 'How is my financial outlook and prosperity according to my Fate Line and Mounts?' },
-  { label: '🎯 Strengths', question: 'What are my greatest natural strengths according to the reading?' },
-  { label: '✨ Future Guidance', question: 'What future guidance and core advice does my palm report offer?' },
-  { label: '👨‍👩‍👧 Family', question: 'What does my report indicate regarding family harmony and relationships?' },
-  { label: '🙏 Spiritual Growth', question: 'What intuitive or spiritual growth insights are present in my report?' },
+  { label: '💼 Career', question: 'Based on my palm reading report, what career directions seem most aligned with my strengths?' },
+  { label: '❤️ Relationships', question: 'What does my palm reading suggest about my relationship style?' },
+  { label: '🧠 Personality', question: 'What are my strongest personality traits according to my palm reading?' },
+  { label: '🌱 Self Growth', question: 'What areas of personal growth should I focus on?' },
+  { label: '💰 Finance', question: 'What does my report suggest about my approach to financial stability?' },
+  { label: '🎯 Strengths', question: 'What are my strongest qualities according to my report?' },
+  { label: '✨ Future Guidance', question: 'What general areas should I focus on in the future?' },
+  { label: '👨‍👩‍👧 Family', question: 'What does my palm reading suggest about my family relationships?' },
 ];
 
 const CHIPS_HI = [
-  { label: '💼 करियर', question: 'मेरी हस्तरेखा रिपोर्ट मेरे करियर और सफलता के बारे में क्या कहती है?' },
-  { label: '❤️ संबंध', question: 'मेरी रिपोर्ट मेरे प्यार, रिश्तों और हृदय रेखा के बारे में क्या बताती है?' },
-  { label: '🧠 व्यक्तित्व', question: 'मस्तिष्क रेखा के आधार पर मेरे मुख्य व्यक्तित्व लक्षणों का सारांश दें।' },
-  { label: '🌱 व्यक्तिगत विकास', question: 'मेरी रिपोर्ट में आत्म-विकास और सुधार के क्या क्षेत्र बताए गए हैं?' },
-  { label: '💰 वित्त व समृद्धि', question: 'मेरी भाग्य रेखा और पर्वतों के अनुसार मेरी आर्थिक स्थिति कैसी रहेगी?' },
-  { label: '🎯 प्रमुख शक्तियां', question: 'इस विश्लेषण के अनुसार मेरी सबसे बड़ी स्वाभाविक शक्तियां क्या हैं?' },
-  { label: '✨ भविष्य मार्गदर्शन', question: 'मेरी हस्तरेखा रिपोर्ट भविष्य के लिए क्या मुख्य सलाह देती है?' },
-  { label: '👨‍👩‍👧 परिवार', question: 'पारिवारिक सामंजस्य के बारे में मेरी रिपोर्ट क्या संकेत देती है?' },
-  { label: '🙏 आध्यात्मिक विकास', question: 'मेरी रिपोर्ट में कौन सी आध्यात्मिक या सहज ज्ञान की बातें हैं?' },
+  { label: '💼 करियर', question: 'मेरी हस्तरेखा रिपोर्ट के अनुसार, मेरी शक्तियों के अनुरूप कौन से करियर विकल्प सबसे सही हैं?' },
+  { label: '❤️ संबंध', question: 'मेरी हस्तरेखा रिपोर्ट मेरी संबंधों की शैली के बारे में क्या संकेत देती है?' },
+  { label: '🧠 व्यक्तित्व', question: 'मेरी हस्तरेखा रिपोर्ट के अनुसार मेरे सबसे मजबूत व्यक्तित्व लक्षण कौन से हैं?' },
+  { label: '🌱 आत्म-विकास', question: 'मुझे व्यक्तिगत विकास के किन क्षेत्रों पर ध्यान केंद्रित करना चाहिए?' },
+  { label: '💰 वित्त', question: 'मेरी रिपोर्ट वित्तीय स्थिरता के प्रति मेरे दृष्टिकोण के बारे में क्या बताती है?' },
+  { label: '🎯 शक्तियां', question: 'मेरी रिपोर्ट के अनुसार मेरे सबसे मजबूत गुण कौन से हैं?' },
+  { label: '✨ भविष्य मार्गदर्शन', question: 'मुझे भविष्य में किन सामान्य क्षेत्रों पर ध्यान देना चाहिए?' },
+  { label: '👨‍👩‍👧 परिवार', question: 'मेरी हस्तरेखा रिपोर्ट मेरे पारिवारिक संबंधों के बारे में क्या संकेत देती है?' },
 ];
 
 export const AIPalmGuideChat: React.FC<AIPalmGuideChatProps> = ({ report, language }) => {
@@ -61,10 +59,10 @@ export const AIPalmGuideChat: React.FC<AIPalmGuideChatProps> = ({ report, langua
     scrollToBottom();
   }, [messages, isLoading]);
 
-  // If no report exists, show empty state warning
+  // If no report exists, show empty state notice
   if (!report) {
     return (
-      <div className="bg-white/80 backdrop-blur-md rounded-3xl p-8 border border-stone-200/80 shadow-lg text-center my-8">
+      <div id="ai-palm-guide-empty" className="bg-white/80 backdrop-blur-md rounded-3xl p-8 border border-stone-200/80 shadow-lg text-center my-8">
         <Sparkles className="w-8 h-8 text-amber-500 mx-auto mb-3 animate-pulse" />
         <h3 className="text-lg font-bold font-serif text-stone-900 mb-1">
           {t.chatTitle}
@@ -97,38 +95,44 @@ export const AIPalmGuideChat: React.FC<AIPalmGuideChatProps> = ({ report, langua
     setIsLoading(true);
 
     try {
-      const payloadMessages = messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      const res = await fetch('/api/chat-palm', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
+          question,
           report,
-          messages: payloadMessages,
-          userQuestion: question,
           language,
         }),
       });
 
-      const data = await res.json();
+      let data: any = null;
+      try {
+        const text = await res.text();
+        if (text && text.trim().startsWith('{')) {
+          data = JSON.parse(text);
+        }
+      } catch (parseErr) {
+        console.warn('[Chat JSON Parse Warning]:', parseErr);
+      }
 
-      if (res.ok && data.reply) {
+      const answerText = data?.answer || data?.reply;
+
+      if (data && data.success && answerText) {
         const assistantMsg: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: data.reply,
+          content: answerText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, assistantMsg]);
       } else {
-        throw new Error(data.error || 'Chat request failed');
+        throw new Error(data?.error || "PalmAI couldn't answer right now. Please try again.");
       }
     } catch (err) {
-      console.error('AI Palm Guide chat error:', err);
-      setErrorMsg(t.chatErrorMsg || "Sorry, I couldn't answer that. Please try again.");
+      console.error('[AI Palm Guide Chat Error]:', err);
+      setErrorMsg("PalmAI couldn't answer right now. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +156,7 @@ export const AIPalmGuideChat: React.FC<AIPalmGuideChatProps> = ({ report, langua
             <h2 className="text-xl font-bold font-serif text-stone-900 flex items-center gap-2">
               <span>{t.chatTitle}</span>
               <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-semibold">
-                AI Assistant
+                AI ASSISTANT
               </span>
             </h2>
             <p className="text-xs text-stone-500 mt-0.5">
@@ -194,7 +198,7 @@ export const AIPalmGuideChat: React.FC<AIPalmGuideChatProps> = ({ report, langua
             <p className="text-xs max-w-xs">
               {isHindi
                 ? 'करियर, प्यार, व्यक्तित्व, भाग्य या आने वाले समय के लिए मार्गदर्शन प्राप्त करें।'
-                : 'Get detailed clarity on career, love, personality traits, fate lines, or guidance.'}
+                : 'Get personalized insights on career, relationships, personality, strengths, or future guidance.'}
             </p>
           </div>
         ) : (
@@ -246,7 +250,7 @@ export const AIPalmGuideChat: React.FC<AIPalmGuideChatProps> = ({ report, langua
           ))
         )}
 
-        {/* Loading / Typing Indicator */}
+        {/* Loading / Thinking Indicator */}
         {isLoading && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -267,21 +271,21 @@ export const AIPalmGuideChat: React.FC<AIPalmGuideChatProps> = ({ report, langua
           </motion.div>
         )}
 
-        {/* Error Banner with Retry */}
+        {/* Error Card with Retry Button */}
         {errorMsg && (
           <motion.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between gap-3 text-xs text-rose-800"
+            className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between gap-3 text-xs text-rose-800"
           >
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>{errorMsg}</span>
+              <span className="font-medium">{errorMsg}</span>
             </div>
             <button
               type="button"
               onClick={handleRetry}
-              className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+              className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>{t.retryBtnText || 'Retry'}</span>
